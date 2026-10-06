@@ -1,8 +1,8 @@
 :root {
   font-family: Inter, Arial, Helvetica, sans-serif;
 
-  color: #f8fafc;
-  background: #0b1220;
+  color: #0f172a;
+  background: #f4f8fc;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -33,15 +33,13 @@ body {
   margin: 0;
   padding: 0;
 
-  background: #0b1220;
-  color: #f8fafc;
+  background: #f4f8fc;
+  color: #0f172a;
 
   overflow-x: hidden;
 }
 
-/* IMPORTANT:
-   Removes Vite's default centered 1280px container
-*/
+/* Full-width React root */
 #root {
   width: 100%;
   min-width: 100%;
@@ -61,7 +59,7 @@ svg {
   max-width: 100%;
 }
 
-/* Remove default button appearance */
+/* Keep form elements consistent */
 button,
 input,
 textarea,
@@ -76,8 +74,8 @@ a {
 
 /* Selection */
 ::selection {
-  background: rgba(37, 185, 255, 0.25);
-  color: #ffffff;
+  background: rgba(11, 116, 255, 0.18);
+  color: #0f172a;
 }
 
 /* Scrollbar */
@@ -86,14 +84,14 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-  background: #08101c;
+  background: #eaf1f8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #263b54;
+  background: #b8cbe0;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #25b9ff;
+  background: #0b74ff;
 }

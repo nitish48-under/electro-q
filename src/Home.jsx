@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import './App.css'
 
 const subjects = [
@@ -46,11 +48,29 @@ const subjects = [
   },
 ]
 
+function getSavedUser() {
+  try {
+    const savedUser = localStorage.getItem('electroqUser')
+    return savedUser ? JSON.parse(savedUser) : null
+  } catch {
+    return null
+  }
+}
+
 function Home() {
+  const navigate = useNavigate()
+  const [user, setUser] = useState(getSavedUser)
+
+  const handleLogout = () => {
+    localStorage.removeItem('electroqToken')
+    localStorage.removeItem('electroqUser')
+    setUser(null)
+    navigate('/')
+  }
+
   return (
     <div className="app">
 
-      {/* Background */}
       <div className="ambient ambient-one"></div>
       <div className="ambient ambient-two"></div>
       <div className="grid-overlay"></div>
@@ -68,9 +88,31 @@ function Home() {
           <a href="#about">About</a>
         </nav>
 
-        <Link to="/quiz/analog" className="login-btn">
-          Start Quiz
-        </Link>
+        {/* Dynamic account navigation */}
+        <div className="navbar-actions">
+          {!user ? (
+            <Link to="/login" className="login-btn">
+              Login
+            </Link>
+          ) : (
+            <>
+              <Link
+                to={user.role === 'admin' ? '/admin' : '/dashboard'}
+                className="login-btn"
+              >
+                {user.role === 'admin' ? 'Admin Dashboard' : 'Student Dashboard'}
+              </Link>
+
+              <button
+                type="button"
+                className="login-btn"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </div>
 
       </header>
 
@@ -102,7 +144,6 @@ function Home() {
             </p>
 
             <div className="hero-actions">
-
               <a href="#subjects" className="primary-btn">
                 Explore Quizzes
                 <span>↗</span>
@@ -112,11 +153,9 @@ function Home() {
                 How it works
                 <span>↓</span>
               </a>
-
             </div>
 
             <div className="hero-stats">
-
               <div>
                 <strong>06</strong>
                 <span>SUBJECTS</span>
@@ -135,7 +174,6 @@ function Home() {
                 <strong>01</strong>
                 <span>PLATFORM</span>
               </div>
-
             </div>
 
           </div>
@@ -164,9 +202,7 @@ function Home() {
 
               <div className="terminal-body">
 
-                <div className="terminal-number">
-                  01
-                </div>
+                <div className="terminal-number">01</div>
 
                 <div className="terminal-label">
                   CURRENT MODULE
@@ -209,7 +245,6 @@ function Home() {
 
         </section>
 
-        {/* Divider */}
         <div className="section-divider">
           <span>01 / 03</span>
           <div></div>

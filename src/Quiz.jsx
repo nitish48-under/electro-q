@@ -1,7 +1,9 @@
-import { useParams, Link } from 'react-router-dom'
-import { useState } from 'react'
-import questions from './questions'
+
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import './Quiz.css'
+
+const API_URL = 'http://localhost:5000/api/quizzes'
 
 const subjectNames = {
   analog: 'Analog Electronics',
@@ -14,111 +16,314 @@ const subjectNames = {
 
 function Quiz() {
   const { subject } = useParams()
-
-  const quizQuestions = questions[subject] || []
+  const navigate = useNavigate()
   const subjectName = subjectNames[subject] || 'ECE Quiz'
 
+  const [quizQuestions, setQuizQuestions] = useState([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [userAnswers, setUserAnswers] = useState([])
+  const [reviewResults, setReviewResults] = useState([])
   const [finished, setFinished] = useState(false)
+  const [score, setScore] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [attemptId, setAttemptId] = useState('')
 
-  const question = quizQuestions[currentQuestion]
+  const selectedAnswer = userAnswers[currentQuestion] ?? null
 
-  const handleSubmit = () => {
-    if (selectedAnswer === null) return
+  useEffect(() => {
+    const controller = new AbortController()
 
-    const updatedAnswers = [...userAnswers]
-    updatedAnswers[currentQuestion] = selectedAnswer
-    setUserAnswers(updatedAnswers)
+    async function fetchQuiz() {
+      setLoading(true)
+      setError('')
+      setQuizQuestions([])
+      setCurrentQuestion(0)
+      setUserAnswers([])
+      setReviewResults([])
+      setFinished(false)
+      setScore(0)
+      setAttemptId('')
 
-    if (currentQuestion === quizQuestions.length - 1) {
-      setFinished(true)
-    } else {
-      setCurrentQuestion(currentQuestion + 1)
-      setSelectedAnswer(null)
+      try {
+        const response = await fetch(
+          `${API_URL}/${encodeURIComponent(subject)}`,
+          { signal: controller.signal }
+        )
+
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Unable to load quiz.')
+        }
+
+        const formattedQuestions = data.questions.map((item) => ({
+          id: item.id,
+          question: item.question,
+          options: item.options,
+        }))
+
+        if (!formattedQuestions.length) {
+          throw new Error('No questions are available for this subject.')
+        }
+
+        setQuizQuestions(formattedQuestions)
+        setUserAnswers(Array(formattedQuestions.length).fill(null))
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(
+            err.message === 'Failed to fetch'
+              ? 'Cannot connect to the backend. Check that the server is running.'
+              : err.message
+          )
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchQuiz()
+
+    return () => controller.abort()
+  }, [subject])
+
+  const selectAnswer = (index) => {
+    setUserAnswers((previous) => {
+      const updated = [...previous]
+      updated[currentQuestion] = index
+      return updated
+    })
+  }
+
+  const goPrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion((previous) => previous - 1)
     }
   }
 
-  const calculateScore = () => {
-    return userAnswers.reduce((score, answer, index) => {
-      return score + (answer === quizQuestions[index].answer ? 1 : 0)
-    }, 0)
+  const handleNext = async () => {
+    if (selectedAnswer === null || submitting) return
+
+    setError('')
+
+    if (currentQuestion < quizQuestions.length - 1) {
+      setCurrentQuestion((previous) => previous + 1)
+      return
+    }
+
+    // Get the logged-in student's token.
+    const token = localStorage.getItem('electroqToken')
+
+    if (!token) {
+      setError('Please log in before submitting your quiz.')
+
+      setTimeout(() => {
+        navigate('/login')
+      }, 1500)
+
+      return
+    }
+
+    setSubmitting(true)
+
+    try {
+      const response = await fetch(
+        `${API_URL}/${encodeURIComponent(subject)}/submit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            answers: quizQuestions.map((item, index) => ({
+              questionId: item.id,
+              answer: item.options[userAnswers[index]],
+            })),
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (response.status === 401) {
+        localStorage.removeItem('electroqToken')
+        localStorage.removeItem('electroqUser')
+        navigate('/login')
+        return
+      }
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Unable to submit your quiz.')
+      }
+
+      setScore(data.score)
+      setReviewResults(data.results || [])
+      setAttemptId(data.attemptId || '')
+      setFinished(true)
+
+    } catch (err) {
+      setError(
+        err.message === 'Failed to fetch'
+          ? 'Could not submit answers. Check your backend connection.'
+          : err.message
+      )
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const restartQuiz = () => {
     setCurrentQuestion(0)
-    setSelectedAnswer(null)
-    setUserAnswers([])
+    setUserAnswers(Array(quizQuestions.length).fill(null))
+    setReviewResults([])
     setFinished(false)
+    setScore(0)
+    setAttemptId('')
+    setError('')
+  }
+
+  if (loading) {
+    return (
+      <main className="quiz-page">
+        <div className="quiz-message-card">
+          <div className="loading-spinner"></div>
+          <h2>Preparing your quiz</h2>
+          <p>Loading your questions. Please wait...</p>
+        </div>
+      </main>
+    )
+  }
+
+  if (error && quizQuestions.length === 0) {
+    return (
+      <main className="quiz-page">
+        <div className="quiz-message-card">
+          <p className="quiz-label">ELECTRO-Q</p>
+          <h1>Unable to load quiz</h1>
+          <p>{error}</p>
+          <Link to="/" className="quiz-primary-btn">
+            Back to Subjects
+          </Link>
+        </div>
+      </main>
+    )
   }
 
   if (quizQuestions.length === 0) {
     return (
-      <div className="quiz-page">
-        <div className="result-card">
-          <h1>Quiz Not Found</h1>
+      <main className="quiz-page">
+        <div className="quiz-message-card">
+          <h1>Quiz not found</h1>
           <p>This subject does not have a quiz yet.</p>
-          <Link to="/subjects">
-            <button className="restart-btn">Back to Subjects</button>
+          <Link to="/" className="quiz-primary-btn">
+            Back to Subjects
           </Link>
         </div>
-      </div>
+      </main>
     )
   }
 
   if (finished) {
-    const score = calculateScore()
-    const percentage = Math.round((score / quizQuestions.length) * 100)
+    const percentage = Math.round(
+      (score / quizQuestions.length) * 100
+    )
 
     return (
-      <div className="quiz-page">
+      <main className="quiz-page">
+        <div className="quiz-container result-container">
+          <Link to="/" className="quiz-back-link">
+            ← Back to Subjects
+          </Link>
 
-        <div className="result-card">
+          <section className="result-card">
+            <div className="result-icon">✓</div>
 
-          <p className="quiz-label">QUIZ COMPLETED</p>
+            <p className="quiz-label">QUIZ COMPLETED</p>
+            <h1>Assessment finished!</h1>
+            <p className="result-subtitle">{subjectName}</p>
 
-          <h1>{subjectName}</h1>
+            <div className="score-circle">
+              <strong>{percentage}%</strong>
+              <span>Your score</span>
+            </div>
 
-          <div className="score-circle">
-            <strong>{percentage}%</strong>
-            <span>Score</span>
-          </div>
+            <div className="score-details">
+              <div>
+                <strong>{score}</strong>
+                <span>Correct</span>
+              </div>
 
-          <h2>
-            {score} / {quizQuestions.length}
-          </h2>
+              <div>
+                <strong>{quizQuestions.length - score}</strong>
+                <span>Incorrect</span>
+              </div>
 
-          <p className="result-message">
-            {percentage >= 80
-              ? 'Excellent work! Your ECE fundamentals are strong.'
-              : percentage >= 50
-                ? 'Good attempt! Keep practicing to improve your score.'
-                : 'Keep practicing! Review the answers below and try again.'}
-          </p>
+              <div>
+                <strong>{quizQuestions.length}</strong>
+                <span>Total</span>
+              </div>
+            </div>
 
-          <div className="answer-review">
+            <p className="result-message">
+              {percentage >= 80
+                ? 'Excellent work! Your ECE fundamentals are strong.'
+                : percentage >= 50
+                  ? 'Good attempt! Keep practicing to improve your score.'
+                  : 'Keep practicing! Review your answers and try again.'}
+            </p>
 
-            <h2>Answer Review</h2>
+            {attemptId && (
+              <p className="attempt-id">
+                Attempt saved successfully
+              </p>
+            )}
+
+            <div className="result-actions">
+              <button className="quiz-primary-btn" onClick={restartQuiz}>
+                Try Again
+              </button>
+
+              <Link to="/" className="quiz-secondary-btn">
+                All Subjects
+              </Link>
+            </div>
+          </section>
+
+          <section className="answer-review">
+            <div className="review-title">
+              <div>
+                <p className="quiz-label">LEARN FROM YOUR ATTEMPT</p>
+                <h2>Answer Review</h2>
+              </div>
+
+              <span>{quizQuestions.length} Questions</span>
+            </div>
 
             {quizQuestions.map((item, index) => {
-
               const userAnswer = userAnswers[index]
-              const isCorrect = userAnswer === item.answer
+
+              const result = reviewResults.find(
+                (entry) => entry.questionId === item.id
+              )
+
+              const isCorrect = result?.correct === true
 
               return (
-                <div
+                <article
                   className={`review-item ${
                     isCorrect ? 'correct' : 'incorrect'
                   }`}
-                  key={index}
+                  key={item.id}
                 >
-
                   <div className="review-header">
-                    <span>Question {index + 1}</span>
+                    <span>QUESTION {index + 1}</span>
 
                     <span className="review-status">
-                      {isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                      {isCorrect ? '✓ Correct' : '✕ Incorrect'}
                     </span>
                   </div>
 
@@ -126,124 +331,157 @@ function Quiz() {
 
                   <p>
                     <strong>Your answer:</strong>{' '}
-                    {item.options[userAnswer]}
+                    {item.options[userAnswer] ?? 'Not answered'}
                   </p>
 
                   <p>
                     <strong>Correct answer:</strong>{' '}
-                    {item.options[item.answer]}
+                    {result?.correctAnswer || 'Unavailable'}
                   </p>
 
                   <p className="explanation">
-                    {item.explanation}
+                    <strong>Explanation:</strong>{' '}
+                    {result?.explanation || 'No explanation available.'}
                   </p>
-
-                </div>
+                </article>
               )
             })}
-
-          </div>
-
-          <div className="result-actions">
-
-            <button
-              className="restart-btn"
-              onClick={restartQuiz}
-            >
-              Try Again
-            </button>
-
-            <Link to="/subjects">
-              <button className="subjects-btn">
-                All Subjects
-              </button>
-            </Link>
-
-          </div>
-
+          </section>
         </div>
-
-      </div>
+      </main>
     )
   }
 
-  const progress =
-    ((currentQuestion + 1) / quizQuestions.length) * 100
+  const question = quizQuestions[currentQuestion]
+  const progress = ((currentQuestion + 1) / quizQuestions.length) * 100
+
+  const answeredCount = userAnswers.filter(
+    (answer) => answer !== null
+  ).length
 
   return (
-    <div className="quiz-page">
-
+    <main className="quiz-page">
       <div className="quiz-container">
 
-        <div className="quiz-header">
-
-          <Link to="/subjects" className="back-link">
-            ← Subjects
+        <header className="quiz-topbar">
+          <Link to="/" className="quiz-back-link">
+            ← Back to Subjects
           </Link>
 
+          <Link to="/" className="quiz-brand">
+            ELECTRO<span>-Q</span>
+          </Link>
+        </header>
+
+        <section className="quiz-heading">
           <div>
-            <p className="quiz-label">{subjectName}</p>
-            <h1>Test Your Knowledge</h1>
+            <p className="quiz-label">YOUR ASSESSMENT</p>
+            <h1>{subjectName}</h1>
+
+            <p className="quiz-subtitle">
+              Take your time. Think carefully and choose the best answer.
+            </p>
           </div>
 
-          <span className="question-count">
-            {currentQuestion + 1} / {quizQuestions.length}
-          </span>
+          <div className="quiz-counter">
+            <strong>{currentQuestion + 1}</strong>
+            <span>/ {quizQuestions.length}</span>
+          </div>
+        </section>
 
-        </div>
+        <section className="quiz-progress-section">
+          <div className="progress-information">
+            <span>YOUR PROGRESS</span>
+            <strong>{Math.round(progress)}% completed</strong>
+          </div>
 
-        <div className="progress-container">
-          <div
-            className="progress-bar"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+          <div className="quiz-progress-track">
+            <div
+              className="quiz-progress-fill"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
 
-        <div className="question-card">
+          <div className="progress-footer">
+            <span>{answeredCount} answered</span>
+            <span>{quizQuestions.length - answeredCount} remaining</span>
+          </div>
+        </section>
 
-          <p className="question-number">
-            QUESTION {String(currentQuestion + 1).padStart(2, '0')}
-          </p>
+        <section className="question-card">
+          <div className="question-card-top">
+            <span className="question-number">
+              QUESTION {String(currentQuestion + 1).padStart(2, '0')}
+            </span>
+
+            <span className="question-total">
+              {quizQuestions.length} QUESTIONS
+            </span>
+          </div>
 
           <h2>{question.question}</h2>
 
-          <div className="options">
+          <p className="answer-instruction">
+            Select one answer below
+          </p>
 
+          <div className="options-grid">
             {question.options.map((option, index) => (
-
               <button
+                type="button"
                 key={index}
-                className={`option ${
+                className={`option-card ${
                   selectedAnswer === index ? 'selected' : ''
                 }`}
-                onClick={() => setSelectedAnswer(index)}
+                onClick={() => selectAnswer(index)}
+                aria-pressed={selectedAnswer === index}
               >
                 <span className="option-letter">
                   {String.fromCharCode(65 + index)}
                 </span>
 
-                <span>{option}</span>
+                <span className="option-text">{option}</span>
+
+                <span className="option-check">
+                  {selectedAnswer === index ? '✓' : ''}
+                </span>
               </button>
-
             ))}
-
           </div>
 
-          <button
-            className="submit-btn"
-            onClick={handleSubmit}
-            disabled={selectedAnswer === null}
-          >
-            {currentQuestion === quizQuestions.length - 1
-              ? 'Finish Quiz'
-              : 'Next Question →'}
-          </button>
+          {error && <p className="quiz-error">{error}</p>}
 
-        </div>
+          <div className="question-navigation">
+            <button
+              type="button"
+              className="quiz-secondary-btn"
+              onClick={goPrevious}
+              disabled={currentQuestion === 0 || submitting}
+            >
+              ← Previous
+            </button>
 
+            <button
+              type="button"
+              className="quiz-primary-btn"
+              onClick={handleNext}
+              disabled={selectedAnswer === null || submitting}
+            >
+              {submitting
+                ? 'Submitting...'
+                : currentQuestion === quizQuestions.length - 1
+                  ? 'Submit Quiz'
+                  : 'Next Question →'}
+            </button>
+          </div>
+        </section>
+
+        <footer className="quiz-footer">
+          <span>ELECTRO-Q / ECE ASSESSMENT</span>
+          <span>Stay focused. Do your best.</span>
+        </footer>
       </div>
-
-    </div>
+    </main>
   )
 }
 

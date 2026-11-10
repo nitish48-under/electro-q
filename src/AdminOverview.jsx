@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 function AdminOverview() {
@@ -14,7 +14,7 @@ function AdminOverview() {
 
       try {
         const response = await fetch(
-          'http://localhost:5000/api/admin/analytics',
+          'https://electro-q-backend.onrender.com/api/admin/analytics',
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -136,7 +136,7 @@ function AdminOverview() {
                   key={index}
                 >
                   <span>LOADING</span>
-                  <h2>—</h2>
+                  <h2>â€”</h2>
                   <p>Please wait...</p>
                 </div>
               ))

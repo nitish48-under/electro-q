@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from 'react'
 import {
   NavLink,
@@ -36,7 +36,7 @@ function AdminLayout() {
         }
 
         const response = await fetch(
-          'http://localhost:5000/api/admin/dashboard',
+          'https://electro-q-backend.onrender.com/api/admin/dashboard',
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -72,11 +72,11 @@ function AdminLayout() {
   }
 
   const menuItems = [
-    { label: 'Overview', path: '/admin', icon: '▦', end: true },
-    { label: 'User Management', path: '/admin/users', icon: '♙' },
-    { label: 'Quiz Analytics', path: '/admin/analytics', icon: '▥' },
-    { label: 'Quiz Management', path: '/admin/quizzes', icon: '▤' },
-    { label: 'Settings', path: '/admin/settings', icon: '⚙' }
+    { label: 'Overview', path: '/admin', icon: 'â–¦', end: true },
+    { label: 'User Management', path: '/admin/users', icon: 'â™™' },
+    { label: 'Quiz Analytics', path: '/admin/analytics', icon: 'â–¥' },
+    { label: 'Quiz Management', path: '/admin/quizzes', icon: 'â–¤' },
+    { label: 'Settings', path: '/admin/settings', icon: 'âš™' }
   ]
 
   if (loading) {
@@ -169,7 +169,7 @@ function AdminLayout() {
               aria-label="Toggle navigation menu"
               aria-expanded={sidebarOpen}
             >
-              {sidebarOpen ? '✕' : '☰'}
+              {sidebarOpen ? 'âœ•' : 'â˜°'}
             </button>
 
             <div className="admin-topbar-heading">
@@ -200,3 +200,4 @@ function AdminLayout() {
 }
 
 export default AdminLayout
+

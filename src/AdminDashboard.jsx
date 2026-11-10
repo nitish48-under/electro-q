@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './App.css'
@@ -23,7 +23,7 @@ function AdminDashboard() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/admin/users',
+        'https://electro-q-backend.onrender.com/api/admin/users',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -50,7 +50,7 @@ function AdminDashboard() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/admin/analytics',
+        'https://electro-q-backend.onrender.com/api/admin/analytics',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -89,7 +89,7 @@ function AdminDashboard() {
         }
 
         const response = await fetch(
-          'http://localhost:5000/api/admin/dashboard',
+          'https://electro-q-backend.onrender.com/api/admin/dashboard',
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -178,33 +178,33 @@ function AdminDashboard() {
         <section className="admin-stats">
           <div className="admin-stat-card">
             <span>TOTAL USERS</span>
-            <h2>{analytics ? analytics.users.total : '—'}</h2>
+            <h2>{analytics ? analytics.users.total : 'â€”'}</h2>
             <p>Registered accounts</p>
           </div>
 
           <div className="admin-stat-card">
             <span>STUDENTS</span>
-            <h2>{analytics ? analytics.users.students : '—'}</h2>
+            <h2>{analytics ? analytics.users.students : 'â€”'}</h2>
             <p>Student accounts</p>
           </div>
 
           <div className="admin-stat-card">
             <span>QUIZ ATTEMPTS</span>
-            <h2>{analytics ? analytics.performance.totalAttempts : '—'}</h2>
+            <h2>{analytics ? analytics.performance.totalAttempts : 'â€”'}</h2>
             <p>Total submissions</p>
           </div>
 
           <div className="admin-stat-card">
             <span>AVERAGE SCORE</span>
             <h2>
-              {analytics ? `${analytics.performance.averageScore}%` : '—'}
+              {analytics ? `${analytics.performance.averageScore}%` : 'â€”'}
             </h2>
             <p>Across all student attempts</p>
           </div>
 
           <div className="admin-stat-card">
             <span>QUIZ SUBJECTS</span>
-            <h2>{analytics ? analytics.quizzes.totalSubjects : '—'}</h2>
+            <h2>{analytics ? analytics.quizzes.totalSubjects : 'â€”'}</h2>
             <p>
               {analytics
                 ? `${analytics.quizzes.totalQuestions} questions available`
@@ -215,7 +215,7 @@ function AdminDashboard() {
           <div className="admin-stat-card">
             <span>HIGHEST SCORE</span>
             <h2>
-              {analytics ? `${analytics.performance.highestScore}%` : '—'}
+              {analytics ? `${analytics.performance.highestScore}%` : 'â€”'}
             </h2>
             <p>Best recorded result</p>
           </div>
@@ -402,3 +402,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard
+

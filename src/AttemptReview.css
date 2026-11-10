@@ -1,4 +1,4 @@
-
+﻿
 .attempt-review-page {
   min-height: 100vh;
   padding: 0 24px;
@@ -344,4 +344,5 @@
     grid-template-columns: 1fr;
   }
 }
+
 

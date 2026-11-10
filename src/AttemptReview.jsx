@@ -1,9 +1,9 @@
-
+﻿
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import './AttemptReview.css'
 
-const API_URL = 'http://localhost:5000/api/quizzes'
+const API_URL = 'https://electro-q-backend.onrender.com/api/quizzes'
 
 function AttemptReview() {
   const { attemptId } = useParams()
@@ -135,7 +135,7 @@ function AttemptReview() {
           </Link>
 
           <Link to="/dashboard" className="attempt-back-link">
-            ← Back to Dashboard
+            â† Back to Dashboard
           </Link>
         </header>
 
@@ -196,7 +196,7 @@ function AttemptReview() {
                 <span>QUESTION {String(index + 1).padStart(2, '0')}</span>
 
                 <span className="attempt-answer-status">
-                  {item.correct ? '✓ Correct' : '✕ Incorrect'}
+                  {item.correct ? 'âœ“ Correct' : 'âœ• Incorrect'}
                 </span>
               </div>
 
@@ -244,3 +244,4 @@ function AttemptReview() {
 }
 
 export default AttemptReview
+

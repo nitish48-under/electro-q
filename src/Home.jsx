@@ -1,4 +1,4 @@
-
+﻿
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './App.css'
@@ -146,12 +146,12 @@ function Home() {
             <div className="hero-actions">
               <a href="#subjects" className="primary-btn">
                 Explore Quizzes
-                <span>↗</span>
+                <span>â†—</span>
               </a>
 
               <a href="#about" className="secondary-btn">
                 How it works
-                <span>↓</span>
+                <span>â†“</span>
               </a>
             </div>
 
@@ -284,7 +284,7 @@ function Home() {
 
                 <div className="card-top">
                   <span>{subject.number}</span>
-                  <span className="card-arrow">↗</span>
+                  <span className="card-arrow">â†—</span>
                 </div>
 
                 <div className="subject-code">
@@ -373,7 +373,7 @@ function Home() {
 
           <a href="#subjects" className="primary-btn">
             Start Your Quiz
-            <span>↗</span>
+            <span>â†—</span>
           </a>
 
         </section>
@@ -407,3 +407,4 @@ function Home() {
 }
 
 export default Home
+

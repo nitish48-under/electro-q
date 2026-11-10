@@ -1,9 +1,11 @@
-
+﻿
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchQuizQuestions, clearQuiz } from './redux/slices/quizSlice'
 import './Quiz.css'
 
-const API_URL = 'http://localhost:5000/api/quizzes'
+const API_URL = 'https://electro-q-backend.onrender.com/api/quizzes'
 
 const subjectNames = {
   analog: 'Analog Electronics',
@@ -17,78 +19,52 @@ const subjectNames = {
 function Quiz() {
   const { subject } = useParams()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+
   const subjectName = subjectNames[subject] || 'ECE Quiz'
 
-  const [quizQuestions, setQuizQuestions] = useState([])
+  // Get quiz questions and loading status from Redux.
+  const {
+    questions: quizQuestions,
+    loading,
+    error: quizError
+  } = useSelector((state) => state.quiz)
+
+  // Local state for the current quiz attempt.
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [userAnswers, setUserAnswers] = useState([])
   const [reviewResults, setReviewResults] = useState([])
   const [finished, setFinished] = useState(false)
   const [score, setScore] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [attemptId, setAttemptId] = useState('')
 
   const selectedAnswer = userAnswers[currentQuestion] ?? null
 
+  // Fetch questions through Redux.
   useEffect(() => {
-    const controller = new AbortController()
+    setCurrentQuestion(0)
+    setUserAnswers([])
+    setReviewResults([])
+    setFinished(false)
+    setScore(0)
+    setAttemptId('')
+    setError('')
 
-    async function fetchQuiz() {
-      setLoading(true)
-      setError('')
-      setQuizQuestions([])
-      setCurrentQuestion(0)
-      setUserAnswers([])
-      setReviewResults([])
-      setFinished(false)
-      setScore(0)
-      setAttemptId('')
+    dispatch(fetchQuizQuestions(subject))
 
-      try {
-        const response = await fetch(
-          `${API_URL}/${encodeURIComponent(subject)}`,
-          { signal: controller.signal }
-        )
-
-        const data = await response.json()
-
-        if (!response.ok || !data.success) {
-          throw new Error(data.message || 'Unable to load quiz.')
-        }
-
-        const formattedQuestions = data.questions.map((item) => ({
-          id: item.id,
-          question: item.question,
-          options: item.options,
-        }))
-
-        if (!formattedQuestions.length) {
-          throw new Error('No questions are available for this subject.')
-        }
-
-        setQuizQuestions(formattedQuestions)
-        setUserAnswers(Array(formattedQuestions.length).fill(null))
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          setError(
-            err.message === 'Failed to fetch'
-              ? 'Cannot connect to the backend. Check that the server is running.'
-              : err.message
-          )
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
-      }
+    return () => {
+      dispatch(clearQuiz())
     }
+  }, [subject, dispatch])
 
-    fetchQuiz()
-
-    return () => controller.abort()
-  }, [subject])
+  // Initialize answer slots when Redux receives questions.
+  useEffect(() => {
+    if (quizQuestions.length > 0) {
+      setUserAnswers(Array(quizQuestions.length).fill(null))
+    }
+  }, [quizQuestions])
 
   const selectAnswer = (index) => {
     setUserAnswers((previous) => {
@@ -114,7 +90,7 @@ function Quiz() {
       return
     }
 
-    // Get the logged-in student's token.
+    // Get the logged-in student's JWT token.
     const token = localStorage.getItem('electroqToken')
 
     if (!token) {
@@ -186,6 +162,7 @@ function Quiz() {
     setError('')
   }
 
+  // Loading screen.
   if (loading) {
     return (
       <main className="quiz-page">
@@ -198,13 +175,14 @@ function Quiz() {
     )
   }
 
-  if (error && quizQuestions.length === 0) {
+  // Redux API error screen.
+  if (quizError && quizQuestions.length === 0) {
     return (
       <main className="quiz-page">
         <div className="quiz-message-card">
           <p className="quiz-label">ELECTRO-Q</p>
           <h1>Unable to load quiz</h1>
-          <p>{error}</p>
+          <p>{quizError}</p>
           <Link to="/" className="quiz-primary-btn">
             Back to Subjects
           </Link>
@@ -213,6 +191,7 @@ function Quiz() {
     )
   }
 
+  // Empty quiz screen.
   if (quizQuestions.length === 0) {
     return (
       <main className="quiz-page">
@@ -227,6 +206,7 @@ function Quiz() {
     )
   }
 
+  // Result screen.
   if (finished) {
     const percentage = Math.round(
       (score / quizQuestions.length) * 100
@@ -236,11 +216,11 @@ function Quiz() {
       <main className="quiz-page">
         <div className="quiz-container result-container">
           <Link to="/" className="quiz-back-link">
-            ← Back to Subjects
+            â† Back to Subjects
           </Link>
 
           <section className="result-card">
-            <div className="result-icon">✓</div>
+            <div className="result-icon">âœ“</div>
 
             <p className="quiz-label">QUIZ COMPLETED</p>
             <h1>Assessment finished!</h1>
@@ -323,7 +303,7 @@ function Quiz() {
                     <span>QUESTION {index + 1}</span>
 
                     <span className="review-status">
-                      {isCorrect ? '✓ Correct' : '✕ Incorrect'}
+                      {isCorrect ? 'âœ“ Correct' : 'âœ• Incorrect'}
                     </span>
                   </div>
 
@@ -359,13 +339,14 @@ function Quiz() {
     (answer) => answer !== null
   ).length
 
+  // Main quiz screen.
   return (
     <main className="quiz-page">
       <div className="quiz-container">
 
         <header className="quiz-topbar">
           <Link to="/" className="quiz-back-link">
-            ← Back to Subjects
+            â† Back to Subjects
           </Link>
 
           <Link to="/" className="quiz-brand">
@@ -443,7 +424,7 @@ function Quiz() {
                 <span className="option-text">{option}</span>
 
                 <span className="option-check">
-                  {selectedAnswer === index ? '✓' : ''}
+                  {selectedAnswer === index ? 'âœ“' : ''}
                 </span>
               </button>
             ))}
@@ -458,7 +439,7 @@ function Quiz() {
               onClick={goPrevious}
               disabled={currentQuestion === 0 || submitting}
             >
-              ← Previous
+              â† Previous
             </button>
 
             <button
@@ -471,7 +452,7 @@ function Quiz() {
                 ? 'Submitting...'
                 : currentQuestion === quizQuestions.length - 1
                   ? 'Submit Quiz'
-                  : 'Next Question →'}
+                  : 'Next Question â†’'}
             </button>
           </div>
         </section>
@@ -486,3 +467,4 @@ function Quiz() {
 }
 
 export default Quiz
+

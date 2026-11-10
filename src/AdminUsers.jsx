@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from 'react'
 
 function AdminUsers() {
@@ -14,7 +14,7 @@ function AdminUsers() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/admin/users',
+        'https://electro-q-backend.onrender.com/api/admin/users',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -150,3 +150,4 @@ function AdminUsers() {
 }
 
 export default AdminUsers
+

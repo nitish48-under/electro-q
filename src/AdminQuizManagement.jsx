@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from 'react'
 
 function AdminQuizManagement() {
@@ -30,7 +30,7 @@ function AdminQuizManagement() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/quizzes'
+        'https://electro-q-backend.onrender.com/api/quizzes'
       )
 
       const data = await response.json()
@@ -60,7 +60,7 @@ function AdminQuizManagement() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/questions/${subjectId}`,
+        `https://electro-q-backend.onrender.com/api/admin/questions/${subjectId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -178,8 +178,8 @@ function AdminQuizManagement() {
       const isEditing = Boolean(editingQuestion)
 
       const url = isEditing
-        ? `http://localhost:5000/api/admin/questions/${selectedSubject}/${editingQuestion.questionId}`
-        : `http://localhost:5000/api/admin/questions/${selectedSubject}`
+        ? `https://electro-q-backend.onrender.com/api/admin/questions/${selectedSubject}/${editingQuestion.questionId}`
+        : `https://electro-q-backend.onrender.com/api/admin/questions/${selectedSubject}`
 
       const response = await fetch(url, {
         method: isEditing ? 'PUT' : 'POST',
@@ -219,7 +219,7 @@ function AdminQuizManagement() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/questions/${selectedSubject}/${questionId}`,
+        `https://electro-q-backend.onrender.com/api/admin/questions/${selectedSubject}/${questionId}`,
         {
           method: 'DELETE',
           headers: {
@@ -482,7 +482,7 @@ function AdminQuizManagement() {
                     {question.options.map((option, index) => (
                       <p key={index}>
                         {String.fromCharCode(65 + index)}. {option}
-                        {option === question.answer ? ' ✓' : ''}
+                        {option === question.answer ? ' âœ“' : ''}
                       </p>
                     ))}
                   </div>
@@ -519,3 +519,4 @@ function AdminQuizManagement() {
 }
 
 export default AdminQuizManagement
+

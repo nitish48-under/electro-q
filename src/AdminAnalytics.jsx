@@ -1,4 +1,4 @@
-
+﻿
 import { useEffect, useState } from 'react'
 
 function AdminAnalytics() {
@@ -14,7 +14,7 @@ function AdminAnalytics() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/admin/analytics',
+        'https://electro-q-backend.onrender.com/api/admin/analytics',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -47,19 +47,19 @@ function AdminAnalytics() {
   const stats = [
     {
       label: 'TOTAL ATTEMPTS',
-      value: performance?.totalAttempts ?? '—',
+      value: performance?.totalAttempts ?? 'â€”',
       description: 'Quiz submissions',
       type: 'attempts'
     },
     {
       label: 'AVERAGE SCORE',
-      value: performance ? `${performance.averageScore}%` : '—',
+      value: performance ? `${performance.averageScore}%` : 'â€”',
       description: 'Across all attempts',
       type: 'average'
     },
     {
       label: 'HIGHEST SCORE',
-      value: performance ? `${performance.highestScore}%` : '—',
+      value: performance ? `${performance.highestScore}%` : 'â€”',
       description: 'Best recorded performance',
       type: 'highest'
     }
@@ -92,7 +92,7 @@ function AdminAnalytics() {
           onClick={fetchAnalytics}
           disabled={loading}
         >
-          {loading ? 'Refreshing...' : '↻ Refresh analytics'}
+          {loading ? 'Refreshing...' : 'â†» Refresh analytics'}
         </button>
       </header>
 
@@ -120,7 +120,7 @@ function AdminAnalytics() {
             >
               <span>{stat.label}</span>
 
-              <h2>{loading ? '—' : stat.value}</h2>
+              <h2>{loading ? 'â€”' : stat.value}</h2>
 
               <p>{loading ? 'Loading data...' : stat.description}</p>
             </div>
@@ -290,3 +290,4 @@ function AdminAnalytics() {
 }
 
 export default AdminAnalytics
+

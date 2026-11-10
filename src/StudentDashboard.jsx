@@ -1,9 +1,9 @@
-
+﻿
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './StudentDashboard.css'
 
-const API_URL = 'http://localhost:5000/api/quizzes'
+const API_URL = 'https://electro-q-backend.onrender.com/api/quizzes'
 
 function StudentDashboard() {
   const navigate = useNavigate()
@@ -185,7 +185,7 @@ function StudentDashboard() {
           </div>
 
           <Link to="/" className="dashboard-start-btn">
-            Explore Subjects →
+            Explore Subjects â†’
           </Link>
         </section>
 
@@ -212,7 +212,7 @@ function StudentDashboard() {
           </article>
 
           <article className="performance-card">
-            <div className="performance-card-icon">★</div>
+            <div className="performance-card-icon">â˜…</div>
             <p>Best Score</p>
             <h2>{dashboard.bestScore}%</h2>
             <span>Your highest percentage</span>
@@ -239,13 +239,13 @@ function StudentDashboard() {
 
           {subjectPerformance.length === 0 ? (
             <div className="analytics-empty">
-              <div className="analytics-empty-icon">↗</div>
+              <div className="analytics-empty-icon">â†—</div>
               <h3>Your analytics will appear here</h3>
               <p>
                 Complete a quiz to start tracking your subject-wise performance.
               </p>
               <Link to="/" className="dashboard-start-btn">
-                Explore Subjects →
+                Explore Subjects â†’
               </Link>
             </div>
           ) : (
@@ -322,7 +322,7 @@ function StudentDashboard() {
                 Complete your first ECE quiz to see your performance here.
               </p>
               <Link to="/" className="dashboard-start-btn">
-                Start Your First Quiz →
+                Start Your First Quiz â†’
               </Link>
             </div>
           ) : (
@@ -366,7 +366,7 @@ function StudentDashboard() {
                           to={`/dashboard/attempt/${attempt._id}`}
                           className="review-attempt-btn"
                         >
-                          Review →
+                          Review â†’
                         </Link>
                       </td>
                     </tr>
@@ -388,3 +388,4 @@ function StudentDashboard() {
 }
 
 export default StudentDashboard
+

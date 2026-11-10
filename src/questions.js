@@ -1,4 +1,4 @@
-const questions = {
+﻿const questions = {
   analog: [
     {
       question: "Which semiconductor device is primarily used for rectification?",
@@ -91,7 +91,7 @@ const questions = {
       question: "Which circuit converts binary information into one of several output lines?",
       options: ["Demultiplexer", "Decoder", "Adder", "Comparator"],
       answer: 1,
-      explanation: "A decoder converts an n-bit binary input into one of up to 2ⁿ output lines."
+      explanation: "A decoder converts an n-bit binary input into one of up to 2â¿ output lines."
     },
     {
       question: "Which circuit adds two binary numbers?",

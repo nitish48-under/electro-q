@@ -1,4 +1,4 @@
-
+﻿
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './Register.css'
@@ -31,7 +31,7 @@ function Register() {
 
     try {
       const response = await fetch(
-        'http://localhost:5000/api/auth/register',
+        'https://electro-q-backend.onrender.com/api/auth/register',
         {
           method: 'POST',
           headers: {
@@ -69,7 +69,7 @@ function Register() {
     <main className="register-page">
       <section className="register-card">
         <Link to="/" className="register-back">
-          ← Back to Home
+          â† Back to Home
         </Link>
 
         <p className="register-brand">ELECTRO-Q</p>
@@ -151,3 +151,4 @@ function Register() {
 }
 
 export default Register
+

@@ -1,4 +1,4 @@
-
+﻿
 import { useOutletContext, useNavigate } from 'react-router-dom'
 
 function AdminSettings() {
@@ -41,7 +41,7 @@ function AdminSettings() {
           <div className="admin-settings-details">
             <div>
               <span>NAME</span>
-              <strong>{admin?.name || '—'}</strong>
+              <strong>{admin?.name || 'â€”'}</strong>
             </div>
 
             <div>
@@ -123,3 +123,4 @@ function AdminSettings() {
 }
 
 export default AdminSettings
+
